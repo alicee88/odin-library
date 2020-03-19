@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="UTF-8">
+    <head>
+        <title>Library</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="header">
+            <h1>Library</h1>
+            <p>Track which books you've read or want to read</p>
+            <button id="addBookButton" class="addBookButton" type="button">Add Book</a>
+        </div>
+        <div class="library">
+        
+        </div>
+
+        <!-- Modal -->
+        <div id="modal" class="modal closed" tabindex="-1">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="addBookLabel">Add new book</h5>
+                <button type="button" id="closeX">
+                    <span>&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    <form name="newBookForm">
+                        <div class="form-group">
+                          <label for="book-title" class="col-form-label">Title:</label>
+                          <input type="text" name="title" class="form-control" id="book-title">
+                        </div>
+                        <div class="form-group">
+                          <label for="book-author" class="col-form-label">Author:</label>
+                          <input type="text" name="author" class="form-control" id="book-author">
+                        </div>
+                        <div class="form-group">
+                            <label for="book-pages" class="col-form-label">Number of pages:</label>
+                            <input type="text" name="pages" class="form-control" id="book-pages">
+                          </div>
+                        <div class="form-check">
+                            <input type="checkbox" name="hasRead" class="form-check-input" id="has-read">
+                            <label class="form-check-label" for="has-read">Already read this book</label>
+                        </div>
+                        <br>
+                        
+                        <button type="submit" class="saveButton">Save changes</button>
+                        <button type="button" id="closeButton">Close</button>
+                    </form>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay closed" id="modal-overlay">
+        </div>
+
+        <script src="scripts.js"></script>
+    </body>
+</html>
