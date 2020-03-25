@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <head>
         <title>Library</title>
+        <script src="https://kit.fontawesome.com/fa7637847c.js" crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Roboto+Slab:wght@300&display=swap" rel="stylesheet"> 
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div class="header">
-            <h1>Library</h1>
-            <p>Track which books you've read or want to read</p>
-            <button id="addBookButton" class="addBookButton" type="button">Add Book</a>
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Library</h1>
+                <p>What are you reading?</p>
+                <button id="addBookButton" class="addBookButton" type="button">Add Book</a>
+            </div>
         </div>
+
         <div class="library">
         
         </div>
@@ -20,36 +25,33 @@
         <div id="modal" class="modal closed" tabindex="-1">
             <div class="modal-content">
                 <div class="modal-header">
-                <h5 class="modal-title" id="addBookLabel">Add new book</h5>
-                <button type="button" id="closeX">
-                    <span>&times;</span>
-                </button>
+                    <h2 class="modal-title">Add new book</h5>
+                    <div class="close-modal"><button id="closeModalX"><i class="far fa-window-close"></i></button></div>
                 </div>
-                <div class="modal-body">
-                    <form name="newBookForm">
-                        <div class="form-group">
-                          <label for="book-title" class="col-form-label">Title:</label>
-                          <input type="text" name="title" class="form-control" id="book-title">
-                        </div>
-                        <div class="form-group">
-                          <label for="book-author" class="col-form-label">Author:</label>
-                          <input type="text" name="author" class="form-control" id="book-author">
-                        </div>
-                        <div class="form-group">
-                            <label for="book-pages" class="col-form-label">Number of pages:</label>
-                            <input type="text" name="pages" class="form-control" id="book-pages">
-                          </div>
-                        <div class="form-check">
+                <form name="newBookForm">
+                    <ul class="modal-wrapper">
+                        <li>
+                            <label for="book-title">Title</label>
+                            <input type="text" name="title" class="form-control" id="book-title" required>
+                        </li>
+                        <li>
+                            <label for="book-author" class="col-form-label">Author</label>
+                            <input type="text" name="author" class="form-control" id="book-author" required>
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="has-read">Read it?</label>
                             <input type="checkbox" name="hasRead" class="form-check-input" id="has-read">
-                            <label class="form-check-label" for="has-read">Already read this book</label>
-                        </div>
-                        <br>
-                        
-                        <button type="submit" class="saveButton">Save changes</button>
-                        <button type="button" id="closeButton">Close</button>
-                    </form>
-                </div>
-            </div>
+                        </li>
+                        <li class="book-rating input-hidden">
+                            <label for="book-rating" class="col-form-label">Rating</label>
+                            <input type="number" name="rating" class="form-control" id="book-rating" min="0" max="5">
+                        </li>
+                        <li>
+                            <button type="submit" class="saveButton">Save</button>
+                            <button type="button" id="closeButton">Close</button>
+                        </li>
+                    </ul>
+                </form>
             </div>
         </div>
 

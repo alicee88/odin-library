@@ -5,69 +5,102 @@ const addBookButton = document.querySelector('#addBookButton');
 const addBookModal = document.querySelector('#modal');
 const modalOverlay = document.querySelector('#modal-overlay');
 const closeModalButton = document.querySelector('#closeButton');
-const closeModalX = document.querySelector('#closeX');
+const closeModalX = document.querySelector('#closeModalX');
+const hasReadButton = document.querySelector('#has-read');
 
 class Book {
-    constructor(title, author, pages, hasRead) {
+    constructor(title, author, rating, hasRead) {
         this.title = title;
         this.author = author;
-        this.pages = pages;
+        this.rating = rating;
         this.hasRead = hasRead;
+        this.stars = [];
+        this.removeBookButton;
     }
 }
 
-function addBookToLibrary(title, author, pages, hasRead) {
-    const newBook = new Book(title, author, pages, hasRead);
-    myLibrary.push(newBook);
+function addBookToLibrary(title, author, rating, hasRead) {
+    const book = new Book(title, author, rating, hasRead);
+    myLibrary.push(book);
     render();
-    console.log(myLibrary);
 }
 
 function render() {
     const numBooks = myLibrary.length;
-    const booksPerRow = 3;
-    let rowCounter = 0;
-    let rowDiv;
     
     libraryLayout.innerHTML = '';
+    
     for(let i = 0; i < numBooks; i++) {
-        if(rowCounter === 0) {
-            rowDiv = document.createElement('div');
-            rowDiv.classList.add('row');
-        }
-
-        let hasReadStr = '';
-        if(myLibrary[i].hasRead) {
-            hasReadStr = 'already read it.';
-        }
-        else {
-            hasReadStr = 'not read it yet.';
-        }
+        
+        let book = myLibrary[i];
+        let ratingText = getStars(book);
 
         const markup = `
-            <div class="card">
-                <div class="card-content">    
-                    <h5 class="card-title">${myLibrary[i].title}</h5>
-                    <h6 class="card-subtitle">${myLibrary[i].author}</h6>
-                    <p class="card-text">This book has ${myLibrary[i].pages} pages, and I have ${hasReadStr}</p>
-                    <a href="#" class="card-link">Remove book</a>
-                    <a href="#" class="card-link">Mark as read</a>
+                
+                <div class="card-header">
+                    <h2 class="card-title">${book.title}</h2>
+                    <p class="card-subtitle">${book.author}</p>
+                    <p class="card-rating">${ratingText}</p>
+                    <div class="remove-book"><button class="remove-book-button" data-remove="${book.title}"><i class="far fa-window-close"></i></button></div>
+                    <div class="read-book"><i class="fas fa-book-open ${book.hasRead ? '' : 'hidden'}"></i></div>
                 </div>
-            </div>
         `;
 
         let newDiv = document.createElement('div');
-        newDiv.classList.add('col-sm');
+        newDiv.classList.add('card');
         newDiv.innerHTML = markup;
-        rowDiv.appendChild(newDiv);
-        libraryLayout.appendChild(rowDiv);
 
-        rowCounter = rowCounter + 1;
-        if(rowCounter > booksPerRow - 1) {
-            rowCounter = 0;
-        }
+        if(!book.hasRead) {
+            newDiv.classList.add('not-read');
+        } 
+
+        libraryLayout.appendChild(newDiv);
+
+        book.stars = Array.from(document.querySelectorAll(`[data-title="${book.title}"]`));
+        book.stars.forEach(btn => btn.addEventListener('click', changeRating));
+        
+        book.removeBookButton = document.querySelector(`[data-remove="${book.title}"]`);
+        book.removeBookButton.addEventListener('click', deleteFromLibrary);
+
         
     }
+}
+
+function deleteFromLibrary(e) {
+    myLibrary = myLibrary.filter(book => book.title != this.dataset.remove);
+    render();
+}
+
+function changeRating(e) {
+    // Find the book we're interested in
+    myLibrary.forEach(book => {
+        if(book.title === this.dataset.title) {
+            // Update the rating and mark as read
+            book.rating = parseInt(this.dataset.index) + 1;
+            book.hasRead = true;
+        }
+    });
+
+    render();
+}
+
+function getStars(book) {
+
+    let ratingText = '<div class="stars">';
+    const maxStars = 5;
+
+    for(let i = 0; i < maxStars; i++) {
+        if(i < book.rating) {
+            ratingText = ratingText + `<button id="star" data-index="${i}" data-title="${book.title}"><i class="fas fa-star"></i></button>`;
+        }
+        else {
+            ratingText = ratingText + `<button id= "star" data-index="${i}" data-title="${book.title}"><i class="far fa-star"></i></button>`;
+        }
+    }
+
+    ratingText = ratingText + '</div>'
+
+    return ratingText;
 }
 
 function showAddBookModal(e) {
@@ -76,13 +109,21 @@ function showAddBookModal(e) {
 }
 
 function closeAddBookModal(e) {
+    document.newBookForm.reset();
     addBookModal.classList.toggle("closed");
     modalOverlay.classList.toggle("closed");
 }
 
+function showRatingChooser(e) {
+    //Only show the rating chooser if book is marked as read
+    ratingInput = document.querySelector('.book-rating');
+    ratingInput.classList.toggle('input-hidden');
+}
+
 document.newBookForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    addBookToLibrary(this.title.value, this.author.value, this.pages.value, this.hasRead.checked);
+    addBookToLibrary(this.title.value, this.author.value, this.rating.value, this.hasRead.checked);
+    document.newBookForm.reset();
     addBookModal.classList.toggle("closed");
     modalOverlay.classList.toggle("closed");
   });
@@ -91,3 +132,7 @@ addBookButton.addEventListener('click', showAddBookModal);
 closeModalButton.addEventListener('click', closeAddBookModal);
 closeModalX.addEventListener('click', closeAddBookModal);
 modalOverlay.addEventListener('click', closeAddBookModal);
+hasReadButton.addEventListener('click', showRatingChooser);
+
+addBookToLibrary("The Hobbit", "JRR Tolkein", 2, true);
+addBookToLibrary("Lord of the Rings", "Some guy", 0, false);
