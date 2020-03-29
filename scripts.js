@@ -1,12 +1,34 @@
-let myLibrary = [];
+// Set up Firebase
+var firebaseConfig = {
+    apiKey: "AIzaSyCjXwVFVuBDKnh_0GBRKgjfpsaCezTvk9U",
+    authDomain: "odinlibrary-5a6d6.firebaseapp.com",
+    databaseURL: "https://odinlibrary-5a6d6.firebaseio.com",
+    projectId: "odinlibrary-5a6d6",
+    storageBucket: "odinlibrary-5a6d6.appspot.com",
+    messagingSenderId: "670071229865",
+    appId: "1:670071229865:web:a80cfea80ec5ede07088b8"
+  };
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
 
 const libraryLayout = document.querySelector('.library');
 const addBookButton = document.querySelector('#addBookButton');
-const addBookModal = document.querySelector('#modal');
+const addBookModal = document.querySelector('#modal-add-book');
 const modalOverlay = document.querySelector('#modal-overlay');
 const closeModalButton = document.querySelector('#closeButton');
 const closeModalX = document.querySelector('#closeModalX');
 const hasReadButton = document.querySelector('#has-read');
+
+// Auth DOM elements
+const newUserModal = document.querySelector('#modal-new-user');
+const signInModal = document.querySelector('#modal-sign-in');
+const signInExistingLink = document.querySelector('.sign-in-existing');
+const createNewUserLink = document.querySelector('.create-new-user');
+const logoutButton = document.querySelector('.logout');
+
+
+let myLibrary = [];
 
 class Book {
     constructor(title, author, rating, hasRead) {
@@ -120,12 +142,28 @@ function showRatingChooser(e) {
     ratingInput.classList.toggle('input-hidden');
 }
 
+// Auth methods
+function showLoginModal() {
+    newUserModal.classList.toggle('closed');
+    signInModal.classList.toggle('closed');
+}
+
+function logout(e) {
+    firebase.auth().signOut().then(function() {
+        // Sign-out successful.
+        showLoginModal();
+      }).catch(function(error) {
+        console.log('Error: Could not logout user');
+      });
+      
+}
+
 document.newBookForm.addEventListener('submit', function(e) {
     e.preventDefault();
     addBookToLibrary(this.title.value, this.author.value, this.rating.value, this.hasRead.checked);
     document.newBookForm.reset();
-    addBookModal.classList.toggle("closed");
-    modalOverlay.classList.toggle("closed");
+    addBookModal.classList.toggle('closed');
+    modalOverlay.classList.toggle('closed');
   });
 
 addBookButton.addEventListener('click', showAddBookModal);
@@ -133,6 +171,47 @@ closeModalButton.addEventListener('click', closeAddBookModal);
 closeModalX.addEventListener('click', closeAddBookModal);
 modalOverlay.addEventListener('click', closeAddBookModal);
 hasReadButton.addEventListener('click', showRatingChooser);
+
+//Auth listeners
+signInExistingLink.addEventListener('click', showLoginModal);
+createNewUserLink.addEventListener('click', showLoginModal);
+logoutButton.addEventListener('click', logout);
+
+document.newUserForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    newUserModal.classList.toggle('closed');
+    modalOverlay.classList.toggle('closed');
+
+
+    firebase.auth().createUserWithEmailAndPassword(this.newUser.value, this.newPassword.value).catch(function(error) {
+        console.log("Error creating user "+error.code, error.message);
+      });
+});
+
+document.signInForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    signInModal.classList.toggle('closed');
+    modalOverlay.classList.toggle('closed');
+    newUserModal.classList.add('closed');
+
+    firebase.auth().signInWithEmailAndPassword(this.existingUser.value, this.existingPassword.value).catch(function(error) {
+        console.log("Error creating user "+error.code, error.message);
+      });
+    
+});
+
+firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+        newUserModal.classList.add('closed');
+        signInModal.classList.add('closed');
+        modalOverlay.classList.add('closed');
+    } else {
+        // User is signed out
+        signInModal.classList.remove('closed');
+        modalOverlay.classList.remove('closed');
+        newUserModal.classList.add('closed');
+    }
+  });
 
 addBookToLibrary("The Hobbit", "JRR Tolkein", 2, true);
 addBookToLibrary("Lord of the Rings", "Some guy", 0, false);

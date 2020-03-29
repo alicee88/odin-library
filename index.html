@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <head>
         <title>Library</title>
+        <script src="https://www.gstatic.com/firebasejs/ui/4.5.0/firebase-ui-auth.js"></script>
+        <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.5.0/firebase-ui-auth.css" />
         <script src="https://kit.fontawesome.com/fa7637847c.js" crossorigin="anonymous"></script>
         <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Roboto+Slab:wght@300&display=swap" rel="stylesheet"> 
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
         <div class="hero">
+            <div class="hero-auth">
+                <button class="logout"><i class="fas fa-user-slash"></i></button>
+            </div>
             <div class="hero-content">
                 <h1>Library</h1>
                 <p>What are you reading?</p>
@@ -18,11 +23,10 @@
         </div>
 
         <div class="library">
-        
         </div>
 
-        <!-- Modal -->
-        <div id="modal" class="modal closed" tabindex="-1">
+        <!-- Modal Add Book-->
+        <div id="modal-add-book" class="modal closed" tabindex="-1">
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 class="modal-title">Add new book</h5>
@@ -32,19 +36,19 @@
                     <ul class="modal-wrapper">
                         <li>
                             <label for="book-title">Title</label>
-                            <input type="text" name="title" class="form-control" id="book-title" required>
+                            <input type="text" name="title" id="book-title" required>
                         </li>
                         <li>
-                            <label for="book-author" class="col-form-label">Author</label>
-                            <input type="text" name="author" class="form-control" id="book-author" required>
+                            <label for="book-author">Author</label>
+                            <input type="text" name="author" id="book-author" required>
                         </li>
                         <li>
-                            <label class="form-check-label" for="has-read">Read it?</label>
-                            <input type="checkbox" name="hasRead" class="form-check-input" id="has-read">
+                            <label for="has-read">Read it?</label>
+                            <input type="checkbox" name="hasRead" id="has-read">
                         </li>
                         <li class="book-rating input-hidden">
-                            <label for="book-rating" class="col-form-label">Rating</label>
-                            <input type="number" name="rating" class="form-control" id="book-rating" min="0" max="5">
+                            <label for="book-rating">Rating</label>
+                            <input type="number" name="rating" id="book-rating" min="0" max="5">
                         </li>
                         <li>
                             <button type="submit" class="saveButton">Save</button>
@@ -55,9 +59,70 @@
             </div>
         </div>
 
-        <div class="modal-overlay closed" id="modal-overlay">
+        <!-- Modal Auth-->
+        <div id="modal-new-user" class="modal closed" tabindex="-1">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Create User</h5>
+                </div>
+                <form name="newUserForm">
+                    <ul class="modal-wrapper">
+                        <li>
+                            <label for="newUser">Email</label>
+                            <input type="email" name="newUser" id="newUser" required>
+                        </li>
+                        <li>
+                            <label for="newPassword">Password</label>
+                            <input type="password" name="newPassword" id="newPassword" pattern=".{6,}" required title="6 characters minimum">
+                        </li>
+                        <li>
+                            <a href="#modal-sign-in" class="sign-in-existing" >Already have an account?</a>
+                        </li>
+                        <li>
+                            <button type="submit" class="saveButton">OK</button>
+                        </li>
+                    </ul>
+                </form>
+            </div>
         </div>
 
+        <div id="modal-sign-in" class="modal" tabindex="-1">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Sign In</h5>
+                </div>
+                <form name="signInForm">
+                    <ul class="modal-wrapper">
+                        <li>
+                            <label for="existingUser">Email</label>
+                            <input type="email" name="existingUser" id="existingUser" required>
+                        </li>
+                        <li>
+                            <label for="existingPassword">Password</label>
+                            <input type="password" name="existingPassword" id="existingPassword" required>
+                        </li>
+                        <li>
+                            <a href="#modal-new-user" class="create-new-user">Create account</a>
+                        </li>
+                        <li>
+                            <button type="submit" class="saveButton">OK</button>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="modal-overlay" id="modal-overlay">
+        </div>
+
+         <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-app.js"></script>
+
+        <!-- Add Firebase products that you want to use -->
+        <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-firestore.js"></script>
         <script src="scripts.js"></script>
+        <script src="auth.js"></script>
     </body>
 </html>

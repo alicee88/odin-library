@@ -2,8 +2,6 @@ html {
     box-sizing: border-box;
     max-width: 1000px;
     margin: 0 auto;
-    /* background: #C4C4C4; */
-    /* background: #DDDDDD; */
     height: 100%;  
     font-family: 'Open Sans', sans-serif;
     background-color: #c4c4c4;
@@ -33,6 +31,13 @@ html {
     font-size: 1.5rem;
   }
 
+  .hero-auth {
+    position: absolute;
+    top: 0;
+    right: 1.5%;
+    color: #DDDDDD;
+  }
+
   .hero-content {
     text-align: center;
     position: absolute;
@@ -48,13 +53,15 @@ html {
     margin: 0 auto;
   }
 
- .hero-content button {
+ .hero-content button,
+ .hero-auth button {
     font-size: 1rem;
     padding: 1rem 2rem;
     margin: 15px 0 0 0;
  }
 
-  .hero-content button {
+  .hero-content button,
+  .hero-auth button {
     font-family: inherit;
     line-height: 1;
     padding: 0.5rem 1rem;
@@ -71,7 +78,9 @@ html {
   }
 
 .hero-content button:hover,
-.hero-content button:focus {
+.hero-content button:focus,
+.hero-auth button:hover,
+.hero-auth button:focus {
     background: #FFFFFF;
     color: #333D40;
 }
@@ -198,6 +207,10 @@ button:active {
     flex: 1 0 250px;
     background: #DDDDDD;
     border: 3px solid #DDDDDD;
+  }
+
+  .modal-wrapper li > a:visited {
+    color: #DDDDDD;
   }
 
   #has-read {
