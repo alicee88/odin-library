@@ -1,16 +1,16 @@
 // Set up Firebase
 var firebaseConfig = {
-    apiKey: "AIzaSyCjXwVFVuBDKnh_0GBRKgjfpsaCezTvk9U",
-    authDomain: "odinlibrary-5a6d6.firebaseapp.com",
-    databaseURL: "https://odinlibrary-5a6d6.firebaseio.com",
-    projectId: "odinlibrary-5a6d6",
-    storageBucket: "odinlibrary-5a6d6.appspot.com",
-    messagingSenderId: "670071229865",
-    appId: "1:670071229865:web:a80cfea80ec5ede07088b8"
+    apiKey: "AIzaSyAjODl3JAtJS3Xo95HnvaBOPhKJs8wZ3B0",
+    authDomain: "odin-library-d34cc.firebaseapp.com",
+    databaseURL: "https://odin-library-d34cc.firebaseio.com",
+    projectId: "odin-library-d34cc",
+    storageBucket: "odin-library-d34cc.appspot.com",
+    messagingSenderId: "392478070743",
+    appId: "1:392478070743:web:148ad8eb7d3f91dee31d92"
   };
-
-// Initialize Firebase
+  // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
 
 const libraryLayout = document.querySelector('.library');
 const addBookButton = document.querySelector('#addBookButton');
@@ -29,6 +29,7 @@ const logoutButton = document.querySelector('.logout');
 
 
 let myLibrary = [];
+let signedIn = false;
 
 class Book {
     constructor(title, author, rating, hasRead) {
@@ -44,53 +45,95 @@ class Book {
 function addBookToLibrary(title, author, rating, hasRead) {
     const book = new Book(title, author, rating, hasRead);
     myLibrary.push(book);
-    render();
+
+
+    db.collection("books").add({
+        title: title,
+        author: author,
+        rating: rating,
+        hasRead: hasRead
+    })
+    .then(function(docRef) {
+        var updateTimestamp = docRef.update({
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        var updateId = docRef.update({id: docRef.id});
+        console.log("Document written with ID: ", docRef.id);
+        
+        docRef.onSnapshot(function(doc) {
+            includeMetadataChanges: true
+            render();
+        });
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
 }
 
 function render() {
     const numBooks = myLibrary.length;
     
     libraryLayout.innerHTML = '';
-    
-    for(let i = 0; i < numBooks; i++) {
-        
-        let book = myLibrary[i];
-        let ratingText = getStars(book);
 
-        const markup = `
+    db.collection("books").orderBy("timestamp").onSnapshot(function(snapshot) {
+        snapshot.docChanges().forEach(function(change) {
+            if (change.type === "added") {
+                let book = change.doc;
+                let ratingText = getStars(book);
+
+                const markup = `
+                        
+                        <div class="card-header">
+                            <h2 class="card-title">${book.data().title}</h2>
+                            <p class="card-subtitle">${book.data().author}</p>
+                            <p class="card-rating">${ratingText}</p>
+                            <div class="remove-book"><button class="remove-book-button" data-remove="${book.data().id}"><i class="far fa-window-close"></i></button></div>
+                            <div class="read-book"><i class="fas fa-book-open ${book.data().hasRead ? '' : 'hidden'}"></i></div>
+                        </div>
+                `;
+
+                let newDiv = document.createElement('div');
+                newDiv.classList.add('card');
+                newDiv.innerHTML = markup;
+
+                if(!book.hasRead) {
+                    newDiv.classList.add('not-read');
+                } 
+
+                libraryLayout.appendChild(newDiv);
+
+                book.stars = Array.from(document.querySelectorAll(`[data-title="${book.id}"]`));
+                book.stars.forEach(btn => btn.addEventListener('click', changeRating));
                 
-                <div class="card-header">
-                    <h2 class="card-title">${book.title}</h2>
-                    <p class="card-subtitle">${book.author}</p>
-                    <p class="card-rating">${ratingText}</p>
-                    <div class="remove-book"><button class="remove-book-button" data-remove="${book.title}"><i class="far fa-window-close"></i></button></div>
-                    <div class="read-book"><i class="fas fa-book-open ${book.hasRead ? '' : 'hidden'}"></i></div>
-                </div>
-        `;
+                book.removeBookButton = document.querySelector(`[data-remove="${book.data().id}"]`);
+                book.removeBookButton.addEventListener('click', deleteFromLibrary);
+            }
+            if (change.type === "modified") {
+                console.log("Modified book: ", change.doc.data());
+            }
+            if (change.type === "removed") {
+                console.log("Removed book: ", change.doc.data());
+            }
+        });
+    });
 
-        let newDiv = document.createElement('div');
-        newDiv.classList.add('card');
-        newDiv.innerHTML = markup;
-
-        if(!book.hasRead) {
-            newDiv.classList.add('not-read');
-        } 
-
-        libraryLayout.appendChild(newDiv);
-
-        book.stars = Array.from(document.querySelectorAll(`[data-title="${book.title}"]`));
-        book.stars.forEach(btn => btn.addEventListener('click', changeRating));
-        
-        book.removeBookButton = document.querySelector(`[data-remove="${book.title}"]`);
-        book.removeBookButton.addEventListener('click', deleteFromLibrary);
-
-        
-    }
 }
 
+    
 function deleteFromLibrary(e) {
-    myLibrary = myLibrary.filter(book => book.title != this.dataset.remove);
-    render();
+    var libraryRef = db.collection('posts');
+
+    db.collection("books").where("id", "==", this.dataset.remove)
+    .get()
+    .then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+            console.log("FOUND IT "+doc.id, " => ", doc.data());
+            doc.ref.delete();
+        });
+    })
+    .catch(function(error) {
+        console.log("Error deleting book: ", error);
+    });
 }
 
 function changeRating(e) {
@@ -103,7 +146,6 @@ function changeRating(e) {
         }
     });
 
-    render();
 }
 
 function getStars(book) {
@@ -112,11 +154,11 @@ function getStars(book) {
     const maxStars = 5;
 
     for(let i = 0; i < maxStars; i++) {
-        if(i < book.rating) {
-            ratingText = ratingText + `<button id="star" data-index="${i}" data-title="${book.title}"><i class="fas fa-star"></i></button>`;
+        if(i < book.data().rating) {
+            ratingText = ratingText + `<button id="star" data-index="${i}" data-title="${book.data().title}"><i class="fas fa-star"></i></button>`;
         }
         else {
-            ratingText = ratingText + `<button id= "star" data-index="${i}" data-title="${book.title}"><i class="far fa-star"></i></button>`;
+            ratingText = ratingText + `<button id= "star" data-index="${i}" data-title="${book.data().title}"><i class="far fa-star"></i></button>`;
         }
     }
 
@@ -131,9 +173,12 @@ function showAddBookModal(e) {
 }
 
 function closeAddBookModal(e) {
-    document.newBookForm.reset();
-    addBookModal.classList.toggle("closed");
-    modalOverlay.classList.toggle("closed");
+    if(signedIn) {
+        document.newBookForm.reset();
+        addBookModal.classList.toggle("closed");
+        modalOverlay.classList.toggle("closed");
+    }
+
 }
 
 function showRatingChooser(e) {
@@ -153,7 +198,7 @@ function logout(e) {
         // Sign-out successful.
         showLoginModal();
       }).catch(function(error) {
-        console.log('Error: Could not logout user');
+        console.error('Error: Could not logout user');
       });
       
 }
@@ -164,6 +209,7 @@ document.newBookForm.addEventListener('submit', function(e) {
     document.newBookForm.reset();
     addBookModal.classList.toggle('closed');
     modalOverlay.classList.toggle('closed');
+
   });
 
 addBookButton.addEventListener('click', showAddBookModal);
@@ -184,7 +230,7 @@ document.newUserForm.addEventListener('submit', function(e) {
 
 
     firebase.auth().createUserWithEmailAndPassword(this.newUser.value, this.newPassword.value).catch(function(error) {
-        console.log("Error creating user "+error.code, error.message);
+        console.error("Error creating user "+error.code, error.message);
       });
 });
 
@@ -195,23 +241,30 @@ document.signInForm.addEventListener('submit', function(e) {
     newUserModal.classList.add('closed');
 
     firebase.auth().signInWithEmailAndPassword(this.existingUser.value, this.existingPassword.value).catch(function(error) {
-        console.log("Error creating user "+error.code, error.message);
+        console.error("Error creating user "+error.code, error.message);
+        signedIn = false;
+        signInModal.classList.remove('closed');
+        modalOverlay.classList.remove('closed');
+        newUserModal.classList.add('closed');
       });
     
 });
 
 firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
+        signedIn = true;
         newUserModal.classList.add('closed');
         signInModal.classList.add('closed');
         modalOverlay.classList.add('closed');
+        render();
     } else {
         // User is signed out
+        signedIn = false;
         signInModal.classList.remove('closed');
         modalOverlay.classList.remove('closed');
         newUserModal.classList.add('closed');
     }
   });
 
-addBookToLibrary("The Hobbit", "JRR Tolkein", 2, true);
-addBookToLibrary("Lord of the Rings", "Some guy", 0, false);
+// addBookToLibrary("The Hobbit", "JRR Tolkein", 2, true);
+//addBookToLibrary("Lord of the Rings", "Some guy", 0, false);
