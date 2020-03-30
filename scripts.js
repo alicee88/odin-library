@@ -71,22 +71,23 @@ function addBookToLibrary(title, author, rating, hasRead) {
 }
 
 function render() {
-    const numBooks = myLibrary.length;
     
     libraryLayout.innerHTML = '';
 
     db.collection("books").orderBy("timestamp").onSnapshot(function(snapshot) {
         snapshot.docChanges().forEach(function(change) {
+            let book = change.doc;
+            
             if (change.type === "added") {
-                let book = change.doc;
+                
                 let ratingText = getStars(book);
 
                 const markup = `
                         
-                        <div class="card-header">
+                        <div class="card-header data-headerID="${book.data().id}">
                             <h2 class="card-title">${book.data().title}</h2>
                             <p class="card-subtitle">${book.data().author}</p>
-                            <p class="card-rating">${ratingText}</p>
+                            <div class="stars" data-ratingID="${book.data().id}"}>${ratingText}</div>
                             <div class="remove-book"><button class="remove-book-button" data-remove="${book.data().id}"><i class="far fa-window-close"></i></button></div>
                             <div class="read-book"><i class="fas fa-book-open ${book.data().hasRead ? '' : 'hidden'}"></i></div>
                         </div>
@@ -96,23 +97,30 @@ function render() {
                 newDiv.classList.add('card');
                 newDiv.innerHTML = markup;
 
-                if(!book.hasRead) {
+                if(!book.data().hasRead) {
                     newDiv.classList.add('not-read');
                 } 
 
                 libraryLayout.appendChild(newDiv);
 
-                book.stars = Array.from(document.querySelectorAll(`[data-title="${book.id}"]`));
+                book.stars = Array.from(document.querySelectorAll(`[data-id="${book.id}"]`));
                 book.stars.forEach(btn => btn.addEventListener('click', changeRating));
                 
                 book.removeBookButton = document.querySelector(`[data-remove="${book.data().id}"]`);
                 book.removeBookButton.addEventListener('click', deleteFromLibrary);
             }
             if (change.type === "modified") {
-                console.log("Modified book: ", change.doc.data());
+                // Update the rating on the card
+                let stars = document.querySelector(`[data-ratingID="${book.id}"]`);
+                stars.innerHTML = getStars(book);
+
             }
             if (change.type === "removed") {
                 console.log("Removed book: ", change.doc.data());
+                let removedBook = document.querySelector(`[data-headerID="${book.id}"]`);
+                if(removedBook) {
+                    removedBook.parentNode.removeChild(removedBook);
+                }
             }
         });
     });
@@ -121,13 +129,12 @@ function render() {
 
     
 function deleteFromLibrary(e) {
-    var libraryRef = db.collection('posts');
+    const libraryRef = db.collection('books');
 
-    db.collection("books").where("id", "==", this.dataset.remove)
+    libraryRef.where("id", "==", this.dataset.remove)
     .get()
     .then(function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
-            console.log("FOUND IT "+doc.id, " => ", doc.data());
             doc.ref.delete();
         });
     })
@@ -138,31 +145,39 @@ function deleteFromLibrary(e) {
 
 function changeRating(e) {
     // Find the book we're interested in
-    myLibrary.forEach(book => {
-        if(book.title === this.dataset.title) {
-            // Update the rating and mark as read
-            book.rating = parseInt(this.dataset.index) + 1;
-            book.hasRead = true;
-        }
+    const newRating = parseInt(this.dataset.index) + 1;
+    const libraryRef = db.collection('books');
+
+    libraryRef.where("id", "==", this.dataset.id)
+    .get()
+    .then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+           // Update the rating and mark as read
+            doc.ref.update({
+                rating: newRating,
+                hasRead: true
+            });
+        });
+    })
+    .catch(function(error) {
+        console.log("Error changing rating: ", error);
     });
 
 }
 
 function getStars(book) {
 
-    let ratingText = '<div class="stars">';
+    let ratingText = '';
     const maxStars = 5;
 
     for(let i = 0; i < maxStars; i++) {
         if(i < book.data().rating) {
-            ratingText = ratingText + `<button id="star" data-index="${i}" data-title="${book.data().title}"><i class="fas fa-star"></i></button>`;
+            ratingText = ratingText + `<button id="star" data-index="${i}" data-id="${book.data().id}"><i class="fas fa-star"></i></button>`;
         }
         else {
-            ratingText = ratingText + `<button id= "star" data-index="${i}" data-title="${book.data().title}"><i class="far fa-star"></i></button>`;
+            ratingText = ratingText + `<button id= "star" data-index="${i}" data-id="${book.data().id}"><i class="far fa-star"></i></button>`;
         }
     }
-
-    ratingText = ratingText + '</div>'
 
     return ratingText;
 }
@@ -209,6 +224,7 @@ document.newBookForm.addEventListener('submit', function(e) {
     document.newBookForm.reset();
     addBookModal.classList.toggle('closed');
     modalOverlay.classList.toggle('closed');
+    ratingInput.classList.add('input-hidden');
 
   });
 
